@@ -9,11 +9,10 @@ def pascal_triangle(n):
     triangle = []
     if not isinstance(n, int) or n <= 0:
         return triangle
-    
     for i in range(n):
         line = [1] * (i + 1)  # Initialize the row with 1s
         for j in range(1, i):  # Only iterate for the inner elements
             line[j] = triangle[i - 1][j - 1] + triangle[i - 1][j]
         triangle.append(line)
-    
+
     return triangle
