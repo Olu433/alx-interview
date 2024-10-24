@@ -5,14 +5,13 @@ import sys
 
 def print_msg(dict_sc, total_file_size):
     """
-    Method to print
+    Method to print the metrics.
     Args:
         dict_sc: dict of status codes
-        total_file_size: total of the file
+        total_file_size: total size of files processed
     Returns:
         Nothing
     """
-
     print("File size: {}".format(total_file_size))
     for key, val in sorted(dict_sc.items()):
         if val != 0:
@@ -20,7 +19,6 @@ def print_msg(dict_sc, total_file_size):
 
 
 total_file_size = 0
-code = 0
 counter = 0
 dict_sc = {"200": 0,
            "301": 0,
@@ -33,22 +31,24 @@ dict_sc = {"200": 0,
 
 try:
     for line in sys.stdin:
-        parsed_line = line.split()  # ✄ trimming
-        parsed_line = parsed_line[::-1]  # inverting
-
-        if len(parsed_line) > 2:
+        parsed_line = line.split()
+        if len(parsed_line) > 1:
             counter += 1
 
-            if counter <= 10:
-                total_file_size += int(parsed_line[0])  # file size
-                code = parsed_line[1]  # status code
+            # Update total file size
+            total_file_size += int(parsed_line[-1])
 
-                if (code in dict_sc.keys()):
-                    dict_sc[code] += 1
+            # Update status code count
+            code = parsed_line[-2]
+            if code in dict_sc:
+                dict_sc[code] += 1
 
-            if (counter == 10):
+            # Print stats every 10 lines
+            if counter == 10:
                 print_msg(dict_sc, total_file_size)
                 counter = 0
 
 finally:
+    # Ensure statistics are printed if interrupted
     print_msg(dict_sc, total_file_size)
+
