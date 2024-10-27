@@ -1,57 +1,53 @@
 #!/usr/bin/python3
-"""
-Script that reads stdin line by line and computes metrics:
-- Input format: <IP Address> - [<date>] "GET /projects/260 HTTP/1.1" <status code> <file size>
-- After every 10 lines and/or a keyboard interruption (CTRL + C), prints statistics
-"""
+
 import sys
 
 
-def print_stats(total_size, status_codes):
-    """Print accumulated statistics."""
-    print(f"File size: {total_size}")
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print(f"{code}: {status_codes[code]}")
+def print_msg(dict_sc, total_file_size):
+    """
+    Method to print the metrics.
+    Args:
+        dict_sc: dict of status codes
+        total_file_size: total size of files processed
+    Returns:
+        Nothing
+    """
+    print("File size: {}".format(total_file_size))
+    for key, val in sorted(dict_sc.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
 
 
-def main():
-    total_size = 0
-    line_count = 0
-    status_codes = {
-        200: 0, 301: 0, 400: 0, 401: 0,
-        403: 0, 404: 0, 405: 0, 500: 0
-    }
+total_file_size = 0
+counter = 0
+dict_sc = {"200": 0,
+           "301": 0,
+           "400": 0,
+           "401": 0,
+           "403": 0,
+           "404": 0,
+           "405": 0,
+           "500": 0}
 
-    try:
-        for line in sys.stdin:
-            line_count += 1
-            
-            # Split the line and extract status code and file size
-            try:
-                parts = line.split()
-                if len(parts) < 7:
-                    continue
-                    
-                status_code = int(parts[-2])
-                file_size = int(parts[-1])
-                
-                # Update metrics
-                if status_code in status_codes:
-                    status_codes[status_code] += 1
-                total_size += file_size
-                
-                # Print stats every 10 lines
-                if line_count % 10 == 0:
-                    print_stats(total_size, status_codes)
-                    
-            except (ValueError, IndexError):
-                continue
-                
-    except KeyboardInterrupt:
-        # Handle Ctrl+C
-        print_stats(total_size, status_codes)
-        raise
+try:
+    for line in sys.stdin:
+        parsed_line = line.split()
+        if len(parsed_line) > 1:
+            counter += 1
 
-if __name__ == "__main__":
-    main()
+            # Update total file size
+            total_file_size += int(parsed_line[-1])
+
+            # Update status code count
+            code = parsed_line[-2]
+            if code in dict_sc:
+                dict_sc[code] += 1
+
+            # Print stats every 10 lines
+            if counter == 10:
+                print_msg(dict_sc, total_file_size)
+                counter = 0
+
+finally:
+    # Ensure statistics are printed if interrupted
+    print_msg(dict_sc, total_file_size)
